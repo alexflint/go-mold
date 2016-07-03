@@ -3,18 +3,18 @@ package test
 type Person struct {
 	Name     string
 	Age      int
-	Children []*Person
+	Children []PersonPtr
 	maker    personMaker
 	data     interface{}
 }
 
 type PersonPtr *Person
 
-type Index map[string]*Person
+type PersonArray [10]Person
 
-type Array [10]Person
+type PersonSlice []Person
 
-type List []Person
+type AddressBook map[string]PersonPtr
 
 type personMaker interface {
 	Make() Person
