@@ -20,10 +20,10 @@ func main() {
 
 	for name, typ := range types {
 		fmt.Println(name)
-		fmt.Printf("kind=%v", typ.Kind())
+		fmt.Println("kind:", typ.Kind())
 		if typ.Kind() == reflect.Struct {
-			for i := 0; i < typ.NumField() {
-				fmt.Printf("field %d: %s", i, typ.Field(i).Name)
+			for i := 0; i < typ.NumField(); i++ {
+				fmt.Printf("field %d: %s\n", i, typ.Field(i).Name)
 			}
 		}
 	}
