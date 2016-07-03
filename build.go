@@ -3,9 +3,7 @@ package mold
 import (
 	"fmt"
 	"go/ast"
-	"go/parser"
 	"go/token"
-	"io"
 	"strconv"
 )
 
@@ -33,7 +31,7 @@ func makeSkeleton(expr ast.Expr, name, pkg string) Type {
 	case *ast.InterfaceType:
 		return &staticInterface{staticType: st, expr: expr}
 	default:
-		panic(fmt.Sprintf("unrecognized type expression: %T", expr))
+		panic(fmt.Sprintf("unexpected %T in type expression", expr))
 	}
 }
 
@@ -51,31 +49,31 @@ func newBuilder(pkg string) *builder {
 		named:   make(map[string]Type),
 	}
 
-	b.symbols["bool"] = typeOf(true)
-	b.symbols["byte"] = typeOf(byte(0))
-	b.symbols["rune"] = typeOf(rune(0))
-	b.symbols["string"] = typeOf("")
+	b.symbols["bool"] = TypeOf(true)
+	b.symbols["byte"] = TypeOf(byte(0))
+	b.symbols["rune"] = TypeOf(rune(0))
+	b.symbols["string"] = TypeOf("")
 
-	b.symbols["int"] = typeOf(int(0))
-	b.symbols["int8"] = typeOf(int8(0))
-	b.symbols["int16"] = typeOf(int16(0))
-	b.symbols["int32"] = typeOf(int32(0))
-	b.symbols["int64"] = typeOf(int64(0))
+	b.symbols["int"] = TypeOf(int(0))
+	b.symbols["int8"] = TypeOf(int8(0))
+	b.symbols["int16"] = TypeOf(int16(0))
+	b.symbols["int32"] = TypeOf(int32(0))
+	b.symbols["int64"] = TypeOf(int64(0))
 
-	b.symbols["uint"] = typeOf(uint(0))
-	b.symbols["uint8"] = typeOf(uint8(0))
-	b.symbols["uint16"] = typeOf(uint16(0))
-	b.symbols["uint32"] = typeOf(uint32(0))
-	b.symbols["uint64"] = typeOf(uint64(0))
+	b.symbols["uint"] = TypeOf(uint(0))
+	b.symbols["uint8"] = TypeOf(uint8(0))
+	b.symbols["uint16"] = TypeOf(uint16(0))
+	b.symbols["uint32"] = TypeOf(uint32(0))
+	b.symbols["uint64"] = TypeOf(uint64(0))
 
-	b.symbols["float32"] = typeOf(float32(0))
-	b.symbols["float64"] = typeOf(float64(0))
+	b.symbols["float32"] = TypeOf(float32(0))
+	b.symbols["float64"] = TypeOf(float64(0))
 
-	b.symbols["complex64"] = typeOf(complex64(0))
-	b.symbols["complex128"] = typeOf(complex128(0))
+	b.symbols["complex64"] = TypeOf(complex64(0))
+	b.symbols["complex128"] = TypeOf(complex128(0))
 
 	var err error
-	b.symbols["error"] = typeOf(&err).Elem()
+	b.symbols["error"] = TypeOf(&err).Elem()
 	return &b
 }
 
@@ -187,6 +185,7 @@ func (b *builder) populateStruct(t *staticStruct) {
 		if f.Names == nil {
 			// anonymous field
 			t.fields = append(t.fields, StructField{
+				Name:      r.Name(),
 				Type:      r,
 				Tag:       tag,
 				Anonymous: true,
@@ -209,20 +208,4 @@ func (b *builder) populateStruct(t *staticStruct) {
 func (b *builder) populateInterface(t *staticInterface) {
 	// TODO: extract methods
 	t.expr = nil
-}
-
-// LoadTypes loads all top-level functions and symbols from a source file
-func LoadTypes(r io.Reader) (map[string]Type, error) {
-	fset := token.NewFileSet()
-	file, err := parser.ParseFile(fset, "src.go", r, 0)
-	if err != nil {
-		return nil, err
-	}
-
-	b := newBuilder(file.Name.Name)
-	for _, decl := range file.Decls {
-		b.add(decl)
-	}
-	b.build()
-	return b.named, nil
 }

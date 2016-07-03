@@ -73,6 +73,6 @@ func (t liveType) FieldByNameFunc(g func(string) bool) (StructField, bool) {
 }
 
 // construct a type from a live object
-func typeOf(v interface{}) Type {
+func TypeOf(v interface{}) Type {
 	return liveType{reflect.TypeOf(v)}
 }
